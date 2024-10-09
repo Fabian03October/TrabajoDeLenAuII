@@ -1,0 +1,69 @@
+package codigo;
+
+import java_cup.runtime.*;
+
+/* Definición del parser */
+parser code
+{:
+    /* Declaración de la variable para manejo de errores */
+    private Symbol s;
+    
+    /* Método para manejar errores de sintaxis */
+    public void syntax_error(Symbol s){
+        this.s = s;     
+    }
+
+    /* Método para obtener el último símbolo con error */
+    public Symbol getS(){
+        return this.s;
+    }
+
+:};
+
+/* Definición de terminales y no terminales */
+terminal String AbrirParentesis, CerrarParentesis,
+                 MenorQue, MayorQue, Igual,
+                 Suma, Resta, Multiplicacion, Division,
+                 Numero, NEGATIVO;
+non terminal inicio, expresiones, expresion;
+non terminal Double operacion;
+
+precedence left Suma, Resta;
+precedence left Multiplicacion, Division;
+precedence right NEGATIVO; 
+
+start with inicio; 
+
+inicio ::= expresiones;
+
+expresiones ::= 
+    expresion:exp1 MayorQue expresion:exp2 {: 
+        RESULT = exp1;
+        RESULT = exp2;
+        System.out.println(" Validacion: " + ((Double)exp1 > (Double)exp2)); :}
+    | expresion:exp1 MenorQue expresion:exp2 {: 
+        RESULT = exp1;
+        RESULT= exp2;
+        System.out.println(" Validacion: " + ((Double)exp1 < (Double)(exp2))); :}
+    |expresion:exp1 Igual expresion:exp2 {: 
+        RESULT = exp1; 
+        RESULT = exp2; 
+        System.out.println( Validacion: " + exp1.equals(exp2)); :}
+    | expresion:exp1 {: 
+        RESULT = exp1; 
+        System.out.println("Resultado= " + exp1); :}
+    
+;
+
+expresion ::= 
+    operacion:uno {: RESULT = uno; :}
+;
+
+operacion  ::= 
+  operacion:uno Suma operacion:dos {: RESULT = uno + dos; :}
+  | operacion:uno Resta operacion:dos {: RESULT = uno - dos; :}
+  | operacion:uno Multiplicacion operacion:dos {: RESULT = uno * dos; :}
+  | operacion:uno Division operacion:dos {: RESULT = uno / dos; :}
+  | Numero:uno {: RESULT = new Double(uno); :}
+  | AbrirParentesis operacion:uno CerrarParentesis {: RESULT = uno; :}
+;
